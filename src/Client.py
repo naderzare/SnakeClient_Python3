@@ -19,10 +19,11 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+import time
 
 def run():
     parser = ArgumentParser()
-    parser.add_argument("-n", "--name", dest="name", type=str, default='team_name' + str(random.randint(0, 10000)),
+    parser.add_argument("-n", "--name", dest="name", type=str, default='zoli',
                         help="Client Name", metavar="NAME")
     parser.add_argument("-c", "--client", dest="client_type", type=str, default='auto',
                         help="greedy, random, hand, best, your", metavar="ClientType")
@@ -61,20 +62,12 @@ def run():
         if message.type == 'MessageClientDisconnect':
             break
         elif message.type == 'MessageClientWorld':
+            a = time.time()
+            # print(message)
             world.update(message)
             world.print()
-
-            action = ""
-            if args.client_type == 'greedy' or (args.client_type == 'auto' and world.self_id == 1):
-                action = c_greedy.get_action(world)
-            elif args.client_type == 'random' or (args.client_type == 'auto' and world.self_id >= 2):
-                action = c_random.get_action(world)
-            elif args.client_type == 'best':
-                action = c_best.get_action(world)
-            elif args.client_type == 'your':
-                action = c_your.get_action(world)
-            elif args.client_type == 'hand':
-                action = input('enter action (u or d or l or r:')
-
+            action = c_best.get_action(world)
+            b = time.time()
             sock.sendto(MessageClientAction(string_action=action).build(), server_address)
+            print(b - a)
 

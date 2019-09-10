@@ -1,11 +1,12 @@
 from src.base.Math import *
-
+import copy
 class Snake:
     def __init__(self, id):
         self.id = id
         self.head = None
         self.body = []
         self.name = ''
+        self.lenght = 0
 
     def get_body(self):
         return self.body
@@ -24,8 +25,30 @@ class Snake:
 
     def reset(self, name):
         self.head = None
-        self.body.clear()
+        # self.body.clear()
         self.name = name
+
+    def manage_body(self, lp):
+        if len(lp) == 3:
+            if Vector2D(1, 3) in lp and Vector2D(1,2) in lp and Vector2D(1,1) in lp:
+                self.body = [Vector2D(1, 3), Vector2D(1, 2), Vector2D(1, 1)]
+            elif Vector2D(1, 26) in lp and Vector2D(1,27) in lp and Vector2D(1,28) in lp:
+                self.body = [Vector2D(1, 26), Vector2D(1, 27), Vector2D(1, 28)]
+            elif Vector2D(28, 3) in lp and Vector2D(28, 2) in lp and Vector2D(28, 1) in lp:
+                self.body = [Vector2D(28, 3), Vector2D(28, 2), Vector2D(28, 1)]
+            elif Vector2D(28, 26) in lp and Vector2D(28, 27) in lp and Vector2D(28, 28) in lp:
+                self.body = [Vector2D(28, 26), Vector2D(28, 27), Vector2D(28,28)]
+            else:
+                self.body.insert(0, copy.deepcopy(self.head))
+                del self.body[-1]
+            self.lenght = 3
+            return
+        if len(lp) == self.lenght:
+            self.body.insert(0, copy.deepcopy(self.head))
+            del self.body[-1]
+        else:
+            self.body.insert(0, copy.deepcopy(self.head))
+        self.lenght = len(lp)
 
 
 class World:
@@ -53,18 +76,22 @@ class World:
             self.snakes[s].reset(list(message.score.keys())[n])
             n += 1
 
+        tmp_snake = [[], [], [], [], []]
         for i in range(len(self.board)):
             for j in range(len(self.board[i])):
                 if self.board[i][j] == self.goal_id:
                     self.goal_position = Vector2D(i, j)
                 elif self.board[i][j] > 0:
-                    self.snakes[self.board[i][j]].add_body(Vector2D(i, j))
+                    tmp_snake[self.board[i][j]].append(Vector2D(i, j))
                 elif self.board[i][j] == -1:
                     self.walls.append(Vector2D(i, j))
 
         for s in self.snakes:
             id = message.name_id[self.snakes[s].name]
             self.snakes[id].set_head(Vector2D(message.world['heads'][self.snakes[s].name][0], message.world['heads'][self.snakes[s].name][1]))
+
+        for s in [1, 2, 3, 4]:
+            self.snakes[s].manage_body(tmp_snake[s])
 
     def get_self(self):
         return self.snakes[self.self_id]
@@ -76,11 +103,12 @@ class World:
         return self.walls
 
     def print(self):
-        print('------------------------------------')
-        print('cycle: {}'.format(self.cycle))
-        for f in self.board:
-            print(f)
-        print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-        for s in self.snakes:
-            print(self.snakes[s].get_id(), self.snakes[s].get_head(), self.snakes[s].get_body())
-        print('------------------------------------')
+        pass
+        # print('------------------------------------')
+        # print('cycle: {}'.format(self.cycle))
+        # for f in self.board:
+        #     print(f)
+        # print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        # for s in self.snakes:
+        #     print(self.snakes[s].get_id(), self.snakes[s].get_head(), self.snakes[s].get_body())
+        # print('------------------------------------')
